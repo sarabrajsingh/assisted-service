@@ -7,7 +7,6 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/identity"
 	"github.com/openshift/assisted-service/models"
@@ -15,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"gorm.io/gorm"
 )
 
 const (
@@ -160,7 +160,7 @@ func GetCluster(ctx context.Context, logger logrus.FieldLogger, db *gorm.DB, clu
 	var cluster common.Cluster
 	if err := db.First(&cluster, identity.AddUserFilter(ctx, "id = ?"), clusterID).Error; err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", clusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.NewApiError(http.StatusNotFound, err)
 		}
 

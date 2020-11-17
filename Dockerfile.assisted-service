@@ -21,7 +21,7 @@ COPY --from=swagger_py /build build
 COPY --from=swagger_go /build/client client
 COPY --from=swagger_go /build/models models
 COPY --from=swagger_go /build/restapi restapi
-RUN CGO_ENABLED=0 GOFLAGS="" GO111MODULE=on go build -o /build/assisted-service cmd/main.go
+RUN CGO_ENABLED=1 GOFLAGS="" GO111MODULE=on go build -o /build/assisted-service cmd/main.go
 RUN cd build && python3 setup.py sdist --dist-dir /assisted-service-client
 
 # Create final image

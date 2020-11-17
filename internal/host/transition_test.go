@@ -20,9 +20,9 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"gorm.io/gorm"
 )
 
 func createValidatorCfg() *hardware.ValidatorCfg {
@@ -393,7 +393,7 @@ var _ = Describe("RegisterHost", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -435,9 +435,6 @@ var _ = Describe("HostInstallationFailed", func() {
 		Expect(swag.StringValue(h.StatusInfo)).Should(Equal("installation command failed"))
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("RegisterInstalledOCPHost", func() {
@@ -470,9 +467,6 @@ var _ = Describe("RegisterInstalledOCPHost", func() {
 		Expect(swag.StringValue(h.Status)).Should(Equal(models.HostStatusInstalled))
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("Cancel host installation", func() {
@@ -545,7 +539,7 @@ var _ = Describe("Cancel host installation", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -619,7 +613,7 @@ var _ = Describe("Reset host", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -771,9 +765,6 @@ var _ = Describe("Install", func() {
 		})
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("Disable", func() {
@@ -903,7 +894,7 @@ var _ = Describe("Disable", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -1030,9 +1021,6 @@ var _ = Describe("Enable", func() {
 		}
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 type statusInfoChecker interface {
@@ -1172,54 +1160,6 @@ var _ = Describe("Refresh Host", func() {
 					Expect(swag.StringValue(resultHost.Status)).Should(Equal(models.HostStatusInstallingInProgress))
 				}
 			})
-		}
-	})
-
-	Context("host disconnected & installation timeout", func() {
-		var srcState string
-
-		installationStages := []models.HostStage{
-			models.HostStageInstalling,
-			models.HostStageWritingImageToDisk,
-		}
-
-		for j := range installationStages {
-			stage := installationStages[j]
-			name := fmt.Sprintf("installationInProgress stage %s", stage)
-			passedTime := 90 * time.Minute
-			It(name, func() {
-				srcState = models.HostStatusInstallingInProgress
-				host = getTestHost(hostId, clusterId, srcState)
-				host.Inventory = masterInventory()
-				host.Role = models.HostRoleMaster
-				host.CheckedInAt = strfmt.DateTime(time.Now().Add(-5 * time.Minute))
-
-				progress := models.HostProgressInfo{
-					CurrentStage:   stage,
-					StageStartedAt: strfmt.DateTime(time.Now().Add(-passedTime)),
-					StageUpdatedAt: strfmt.DateTime(time.Now().Add(-passedTime)),
-				}
-
-				host.Progress = &progress
-
-				Expect(db.Create(&host).Error).ShouldNot(HaveOccurred())
-				cluster = getTestCluster(clusterId, "1.2.3.0/24")
-				Expect(db.Create(&cluster).Error).ToNot(HaveOccurred())
-
-				mockEvents.EXPECT().AddEvent(gomock.Any(), host.ClusterID, &hostId, hostutil.GetEventSeverityFromHostStatus(models.HostStatusError),
-					gomock.Any(), gomock.Any())
-				err := hapi.RefreshStatus(ctx, &host, db)
-
-				Expect(err).ToNot(HaveOccurred())
-				var resultHost models.Host
-				Expect(db.Take(&resultHost, "id = ? and cluster_id = ?", hostId.String(), clusterId.String()).Error).ToNot(HaveOccurred())
-
-				Expect(swag.StringValue(resultHost.Status)).To(Equal(models.HostStatusError))
-				info := formatProgressTimedOutInfo(stage) + hostNotRespondingNotification
-				Expect(swag.StringValue(resultHost.StatusInfo)).To(MatchRegexp(info))
-
-			})
-
 		}
 	})
 
@@ -2561,7 +2501,7 @@ var _ = Describe("Refresh Host", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })

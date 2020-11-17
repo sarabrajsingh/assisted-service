@@ -13,7 +13,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/security"
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
 	params "github.com/openshift/assisted-service/pkg/context"
 	logutil "github.com/openshift/assisted-service/pkg/log"
@@ -21,6 +20,7 @@ import (
 	"github.com/patrickmn/go-cache"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type Config struct {

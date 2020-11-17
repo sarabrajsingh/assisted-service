@@ -8,9 +8,9 @@ import (
 	"github.com/openshift/assisted-service/pkg/requestid"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/models"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 //go:generate mockgen -source=event.go -package=events -destination=mock_event.go

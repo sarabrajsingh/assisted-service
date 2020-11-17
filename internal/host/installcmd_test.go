@@ -11,13 +11,13 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/hardware"
 	"github.com/openshift/assisted-service/models"
 	"github.com/pkg/errors"
+	"gorm.io/gorm"
 )
 
 var DefaultInstructionConfig = InstructionConfig{
@@ -111,7 +111,7 @@ var _ = Describe("installcmd", func() {
 
 	AfterEach(func() {
 		// cleanup
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 		stepReply = nil
 		stepErr = nil
@@ -141,7 +141,7 @@ var _ = Describe("installcmd arguments", func() {
 
 	AfterSuite(func() {
 		controller.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	Context("configuration_params", func() {

@@ -17,12 +17,12 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var _ = Describe("Transition tests", func() {
@@ -144,9 +144,7 @@ var _ = Describe("Transition tests", func() {
 			Expect(swag.StringValue(c.Status)).Should(Equal(models.ClusterStatusInstalling))
 		})
 	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("Cancel cluster installation", func() {
@@ -216,7 +214,7 @@ var _ = Describe("Cancel cluster installation", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -280,7 +278,7 @@ var _ = Describe("Reset cluster", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -948,7 +946,7 @@ var _ = Describe("Refresh Cluster - No DHCP", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -1318,7 +1316,7 @@ var _ = Describe("Refresh Cluster - Advanced networking validations", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -1769,7 +1767,7 @@ var _ = Describe("Refresh Cluster - With DHCP", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -2042,7 +2040,7 @@ var _ = Describe("Refresh Cluster - Installing Cases", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -2395,7 +2393,7 @@ var _ = Describe("NTP refresh cluster", func() {
 		}
 	})
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })

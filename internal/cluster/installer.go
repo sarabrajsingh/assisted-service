@@ -14,8 +14,8 @@ import (
 
 	"github.com/go-openapi/swag"
 
-	"github.com/jinzhu/gorm"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func NewInstaller(log logrus.FieldLogger, db *gorm.DB) *installer {

@@ -19,8 +19,6 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kelseyhightower/envconfig"
 	bmh_v1alpha1 "github.com/metal3-io/baremetal-operator/pkg/apis/metal3/v1alpha1"
 	"github.com/openshift/assisted-service/internal/bminventory"
@@ -52,6 +50,8 @@ import (
 	"github.com/openshift/assisted-service/restapi"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
@@ -127,16 +127,11 @@ func main() {
 	log.Println("Starting bm service")
 
 	// Connect to db
-	dbConnectionStr := fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s sslmode=disable",
-		Options.DBConfig.Host, Options.DBConfig.Port, Options.DBConfig.User, Options.DBConfig.Name, Options.DBConfig.Pass)
-	db, err := gorm.Open("postgres", dbConnectionStr)
+	// Connect to db
+	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Fail to connect to DB, ", err)
 	}
-	defer db.Close()
-	db.DB().SetMaxIdleConns(0)
-	db.DB().SetMaxOpenConns(0)
-	db.DB().SetConnMaxLifetime(0)
 
 	prometheusRegistry := prometheus.DefaultRegisterer
 	metricsManager := metrics.NewMetricsManager(prometheusRegistry)
@@ -409,7 +404,7 @@ func (a *ApiEnabler) Enable() {
 func autoMigrationWithLeader(migrationLeader leader.ElectorInterface, db *gorm.DB, log logrus.FieldLogger) error {
 	return migrationLeader.RunWithLeader(context.Background(), func() error {
 		log.Infof("Start automigration")
-		err := db.AutoMigrate(&models.Host{}, &common.Cluster{}, &events.Event{}).Error
+		err := db.AutoMigrate(&models.Host{}, &common.Cluster{}, &events.Event{})
 		if err != nil {
 			log.WithError(err).Fatal("Failed auto migration process")
 			return err

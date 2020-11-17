@@ -13,13 +13,13 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/internal/hardware"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var _ = Describe("instructionmanager", func() {
@@ -167,7 +167,7 @@ var _ = Describe("instructionmanager", func() {
 
 	AfterEach(func() {
 		// cleanup
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 		stepsReply = models.Steps{}
 		stepsErr = nil

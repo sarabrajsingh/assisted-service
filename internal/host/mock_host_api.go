@@ -8,10 +8,10 @@ import (
 	context "context"
 	strfmt "github.com/go-openapi/strfmt"
 	gomock "github.com/golang/mock/gomock"
-	gorm "github.com/jinzhu/gorm"
 	common "github.com/openshift/assisted-service/internal/common"
 	models "github.com/openshift/assisted-service/models"
 	logrus "github.com/sirupsen/logrus"
+	gorm "gorm.io/gorm"
 	reflect "reflect"
 )
 

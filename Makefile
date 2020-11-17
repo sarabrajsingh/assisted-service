@@ -122,10 +122,10 @@ build-in-docker:
 	skipper make build-image build-minimal-assisted-iso-generator-image
 
 build-minimal: $(BUILD_FOLDER)
-	CGO_ENABLED=0 go build -o $(BUILD_FOLDER)/assisted-service cmd/main.go
+	CGO_ENABLED=1 go build -o $(BUILD_FOLDER)/assisted-service cmd/main.go
 
 build-iso-generator: $(BUILD_FOLDER)
-	CGO_ENABLED=0 go build -o $(BUILD_FOLDER)/assisted-iso-create assisted-iso-create/main.go
+	CGO_ENABLED=1 go build -o $(BUILD_FOLDER)/assisted-iso-create assisted-iso-create/main.go
 
 build-image: build
 	docker build $(CONTAINER_BUILD_PARAMS) -f Dockerfile.assisted-service . -t $(SERVICE)
@@ -218,7 +218,7 @@ deploy-role: deploy-namespace
 	python3 ./tools/deploy_role.py --namespace "$(NAMESPACE)" --profile "$(PROFILE)" --target "$(TARGET)"
 
 deploy-postgres: deploy-namespace
-	python3 ./tools/deploy_postgres.py --namespace "$(NAMESPACE)" --profile "$(PROFILE)" --target "$(TARGET)"
+	# python3 ./tools/deploy_postgres.py --namespace "$(NAMESPACE)" --profile "$(PROFILE)" --target "$(TARGET)"
 
 deploy-service-on-ocp-cluster:
 	export TARGET=ocp && $(MAKE) deploy-postgres deploy-ocm-secret deploy-s3-secret deploy-service
@@ -279,15 +279,15 @@ docs_serve:
 subsystem-run: test subsystem-clean
 
 test:
+	#DB_HOST=$(shell $(call get_service,postgres) | sed 's/http:\/\///g' | cut -d ":" -f 1)
+	#DB_PORT=$(shell $(call get_service,postgres) | sed 's/http:\/\///g' | cut -d ":" -f 2)
 	INVENTORY=$(shell $(call get_service,assisted-service) | sed 's/http:\/\///g') \
-		DB_HOST=$(shell $(call get_service,postgres) | sed 's/http:\/\///g' | cut -d ":" -f 1) \
-		DB_PORT=$(shell $(call get_service,postgres) | sed 's/http:\/\///g' | cut -d ":" -f 2) \
-		OCM_HOST=$(shell $(call get_service,wiremock) | sed 's/http:\/\///g') \
-		TEST_TOKEN="$(shell cat $(BUILD_FOLDER)/auth-tokenString)" \
-		TEST_TOKEN_ADMIN="$(shell cat $(BUILD_FOLDER)/auth-tokenAdminString)" \
-		TEST_TOKEN_UNALLOWED="$(shell cat $(BUILD_FOLDER)/auth-tokenUnallowedString)" \
-		ENABLE_AUTH="true" \
-		go test -v ./subsystem/... -count=1 $(GINKGO_FOCUS_FLAG) -ginkgo.v -timeout 120m
+	OCM_HOST=$(shell $(call get_service,wiremock) | sed 's/http:\/\///g') \
+	TEST_TOKEN="$(shell cat $(BUILD_FOLDER)/auth-tokenString)" \
+	TEST_TOKEN_ADMIN="$(shell cat $(BUILD_FOLDER)/auth-tokenAdminString)" \
+	TEST_TOKEN_UNALLOWED="$(shell cat $(BUILD_FOLDER)/auth-tokenUnallowedString)" \
+	ENABLE_AUTH="true" \
+	go test -v ./subsystem/... -count=1 $(GINKGO_FOCUS_FLAG) -ginkgo.v -timeout 120m
 
 deploy-wiremock: deploy-namespace
 	python3 ./tools/deploy_wiremock.py --target $(TARGET) --namespace "$(NAMESPACE)" --profile "$(PROFILE)"
@@ -304,22 +304,22 @@ deploy-grafana: $(BUILD_FOLDER)
 deploy-monitoring: deploy-olm deploy-prometheus deploy-grafana
 
 unit-test: $(REPORTS)
-	docker ps -q --filter "name=postgres" | xargs -r docker kill && sleep 3
-	docker run -d  --rm --name postgres -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=admin -p 127.0.0.1:5432:5432 \
-		quay.io/ocpmetal/postgres:12.3-alpine -c 'max_connections=10000'
-	timeout 1m bash -c "until PGPASSWORD=admin pg_isready -U admin --dbname postgres --host 127.0.0.1 --port 5432; do sleep 1; done"
+	# docker ps -q --filter "name=postgres" | xargs -r docker kill && sleep 3
+	# docker run -d  --rm --name postgres -e POSTGRES_PASSWORD=admin -e POSTGRES_USER=admin -p 127.0.0.1:5432:5432 \
+	# 	quay.io/ocpmetal/postgres:12.3-alpine -c 'max_connections=10000'
+	# timeout 1m bash -c "until PGPASSWORD=admin pg_isready -U admin --dbname postgres --host 127.0.0.1 --port 5432; do sleep 1; done"
 	SKIP_UT_DB=1 gotestsum --format=pkgname $(TEST_PUBLISH_FLAGS) -- -cover -coverprofile=$(REPORTS)/coverage.out $(or ${TEST},${TEST},$(shell go list ./... | grep -v subsystem)) $(GINKGO_FOCUS_FLAG) \
 		-ginkgo.v -timeout 30m -count=1 || (docker kill postgres && /bin/false)
 	gocov convert $(REPORTS)/coverage.out | gocov-xml > $(REPORTS)/coverage.xml
-	docker kill postgres
+	# docker kill postgres
 
 $(REPORTS):
 	-mkdir -p $(REPORTS)
 
 test-onprem:
+	# DB_HOST=127.0.0.1
+	# DB_PORT=5432
 	INVENTORY=127.0.0.1:8090 \
-	DB_HOST=127.0.0.1 \
-	DB_PORT=5432 \
 	DEPLOY_TARGET=onprem \
 	go test -v ./subsystem/... -count=1 $(GINKGO_FOCUS_FLAG) -ginkgo.v -timeout 30m
 

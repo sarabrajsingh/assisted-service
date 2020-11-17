@@ -13,8 +13,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
@@ -24,6 +22,7 @@ import (
 	"github.com/openshift/assisted-service/models"
 	"github.com/openshift/assisted-service/pkg/leader"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 var defaultHwInfo = "default hw info" // invalid hw info used only for tests
@@ -55,10 +54,6 @@ var _ = Describe("update_role", func() {
 		state = NewManager(getTestLog(), db, nil, nil, nil, createValidatorCfg(), nil, defaultConfig, dummy)
 		id = strfmt.UUID(uuid.New().String())
 		clusterID = strfmt.UUID(uuid.New().String())
-	})
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 	Context("update role by src state", func() {
@@ -197,10 +192,6 @@ var _ = Describe("update_progress", func() {
 		id := strfmt.UUID(uuid.New().String())
 		clusterId := strfmt.UUID(uuid.New().String())
 		host = getTestHost(id, clusterId, "")
-	})
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 	Context("installing host", func() {
@@ -422,10 +413,6 @@ var _ = Describe("cancel installation", func() {
 		h = getTestHost(id, clusterId, models.HostStatusDiscovering)
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
-
 	Context("cancel installation", func() {
 		It("cancel installation success", func() {
 			h.Status = swag.String(models.HostStatusInstalling)
@@ -501,9 +488,6 @@ var _ = Describe("reset host", func() {
 		config = *defaultConfig
 		dummy := &leader.DummyElector{}
 		state = NewManager(getTestLog(), db, eventsHandler, nil, nil, nil, nil, &config, dummy)
-	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 	Context("reset installation", func() {
@@ -805,10 +789,6 @@ var _ = Describe("UpdateInventory", func() {
 		clusterId = strfmt.UUID(uuid.New().String())
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
-
 	Context("enable host", func() {
 		newInventory := "new inventory stuff"
 		success := func(reply error) {
@@ -919,10 +899,6 @@ var _ = Describe("Update hostname", func() {
 		hapi = NewManager(getTestLog(), db, nil, nil, nil, createValidatorCfg(), nil, defaultConfig, dummy)
 		hostId = strfmt.UUID(uuid.New().String())
 		clusterId = strfmt.UUID(uuid.New().String())
-	})
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 	Context("set hostname", func() {
@@ -1071,9 +1047,6 @@ var _ = Describe("SetBootstrap", func() {
 		})
 	}
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("PrepareForInstallation", func() {
@@ -1143,9 +1116,6 @@ var _ = Describe("PrepareForInstallation", func() {
 		}
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("AutoAssignRole", func() {
@@ -1175,8 +1145,11 @@ var _ = Describe("AutoAssignRole", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-		db.Close()
+		sqliteDB, err := db.DB()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = sqliteDB.Close()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 
 	Context("single host role selection", func() {
@@ -1283,8 +1256,11 @@ var _ = Describe("IsValidMasterCandidate", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-		db.Close()
+		sqliteDB, err := db.DB()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = sqliteDB.Close()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 
 	Context("single host role selection", func() {

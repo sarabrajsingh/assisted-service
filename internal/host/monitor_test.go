@@ -9,8 +9,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kelseyhightower/envconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -18,6 +16,7 @@ import (
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/models"
 	"github.com/openshift/assisted-service/pkg/leader"
+	"gorm.io/gorm"
 )
 
 var _ = Describe("monitor_disconnection", func() {
@@ -46,10 +45,6 @@ var _ = Describe("monitor_disconnection", func() {
 		err := state.RegisterHost(ctx, &host)
 		Expect(err).ShouldNot(HaveOccurred())
 		db.First(&host, "id = ? and cluster_id = ?", host.ID, host.ClusterID)
-	})
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 	Context("host_disconnecting", func() {
@@ -102,7 +97,12 @@ var _ = Describe("monitor_disconnection", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		db.Close()
+
+		sqliteDB, err := db.DB()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = sqliteDB.Close()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 })
 
@@ -132,7 +132,7 @@ var _ = Describe("TestHostMonitoring", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -151,7 +151,7 @@ var _ = Describe("TestHostMonitoring", func() {
 				db.Save(&host)
 			}
 			state.HostMonitoring()
-			var count int
+			var count int64
 			Expect(db.Model(&models.Host{}).Where("status = ?", models.HostStatusDisconnected).Count(&count).Error).
 				ShouldNot(HaveOccurred())
 			Expect(count).Should(Equal(nHosts))

@@ -1,20 +1,19 @@
 package subsystem
 
 import (
-	"fmt"
 	"net/url"
 	"testing"
 
 	"github.com/go-openapi/runtime"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kelseyhightower/envconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/client"
 	"github.com/openshift/assisted-service/pkg/auth"
 	"github.com/sirupsen/logrus"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var db *gorm.DB
@@ -68,9 +67,7 @@ func init() {
 	agentBMClient = client.New(agentClientCfg)
 	badAgentBMClient = client.New(badAgentClientCfg)
 
-	db, err = gorm.Open("postgres",
-		fmt.Sprintf("host=%s port=%s user=admin dbname=installer password=admin sslmode=disable",
-			Options.DBHost, Options.DBPort))
+	db, err = gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
 	if err != nil {
 		logrus.Fatal("Fail to connect to DB, ", err)
 	}

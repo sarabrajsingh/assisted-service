@@ -7,10 +7,10 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var _ = Describe("apivipconnectivitycheckcmd", func() {
@@ -52,7 +52,7 @@ var _ = Describe("apivipconnectivitycheckcmd", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		stepReply = nil
 		stepErr = nil
 	})

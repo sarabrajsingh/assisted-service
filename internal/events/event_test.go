@@ -13,14 +13,13 @@ import (
 	"github.com/pborman/uuid"
 
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/types"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/models"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 /*
@@ -131,10 +130,6 @@ var _ = Describe("Events library", func() {
 		})
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
-
 })
 
 func WithRequestID(requestID string) types.GomegaMatcher {
@@ -163,7 +158,6 @@ func WithTime(t time.Time) types.GomegaMatcher {
 
 func TestEvents(t *testing.T) {
 	RegisterFailHandler(Fail)
-	common.InitializeDBTest()
-	defer common.TerminateDBTest()
+
 	RunSpecs(t, "Events test Suite")
 }

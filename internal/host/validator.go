@@ -20,8 +20,8 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
+	"gorm.io/gorm"
 
 	"github.com/openshift/assisted-service/models"
 )
@@ -147,7 +147,7 @@ type validator struct {
 }
 
 func (v *validator) isConnected(c *validationContext) validationStatus {
-	return boolValue(c.host.CheckedInAt.String() == "" || time.Since(time.Time(c.host.CheckedInAt)) <= MaxHostDisconnectionTime)
+	return boolValue(c.host.CheckedInAt.String() == "" || time.Since(time.Time(c.host.CheckedInAt)) <= 3*time.Minute)
 }
 
 func (v *validator) printConnected(context *validationContext, status validationStatus) string {

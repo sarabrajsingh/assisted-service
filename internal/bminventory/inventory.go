@@ -29,7 +29,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	"github.com/kennygrant/sanitize"
 	"github.com/openshift/assisted-service/internal/cluster"
 	"github.com/openshift/assisted-service/internal/cluster/validations"
@@ -58,6 +57,7 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
 	"github.com/vincent-petithory/dataurl"
+	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/tools/clientcmd"
 )
@@ -1191,7 +1191,7 @@ func (b *bareMetalInventory) UpdateClusterInstallConfig(ctx context.Context, par
 	err := b.db.First(&cluster, query, params.ClusterID).Error
 	if err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", params.ClusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return installer.NewUpdateClusterInstallConfigNotFound().WithPayload(common.GenerateError(http.StatusNotFound, err))
 		} else {
 			return installer.NewUpdateClusterInstallConfigInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
@@ -1714,13 +1714,13 @@ func (b *bareMetalInventory) RegisterHost(ctx context.Context, params installer.
 
 	if err := b.db.First(&cluster, "id = ?", params.ClusterID.String()).Error; err != nil {
 		log.WithError(err).Errorf("failed to get cluster: %s", params.ClusterID.String())
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.NewApiError(http.StatusNotFound, err)
 		}
 		return common.NewApiError(http.StatusInternalServerError, err)
 	}
 	err := b.db.First(&host, "id = ? and cluster_id = ?", *params.NewHostParams.HostID, params.ClusterID).Error
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.WithError(err).Errorf("failed to get host %s in cluster: %s",
 			*params.NewHostParams.HostID, params.ClusterID.String())
 		return installer.NewRegisterHostInternalServerError().
@@ -1728,7 +1728,7 @@ func (b *bareMetalInventory) RegisterHost(ctx context.Context, params installer.
 	}
 
 	// In case host doesn't exists check if the cluster accept new hosts registration
-	if err != nil && gorm.IsRecordNotFoundError(err) {
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		if err = b.clusterApi.AcceptRegistration(&cluster); err != nil {
 			log.WithError(err).Errorf("failed to register host <%s> to cluster %s due to: %s",
 				params.NewHostParams.HostID, params.ClusterID.String(), err.Error())
@@ -1884,39 +1884,6 @@ func (b *bareMetalInventory) ListHosts(ctx context.Context, params installer.Lis
 	}
 
 	return installer.NewListHostsOK().WithPayload(hosts)
-}
-
-func (b *bareMetalInventory) UpdateHostInstallerArgs(ctx context.Context, params installer.UpdateHostInstallerArgsParams) middleware.Responder {
-	log := logutil.FromContext(ctx, b.log)
-
-	err := hostutil.ValidateInstallerArgs(params.InstallerArgsParams.Args)
-	if err != nil {
-		return installer.NewUpdateHostInstallerArgsBadRequest().WithPayload(common.GenerateError(http.StatusBadRequest, err))
-	}
-
-	_, err = b.getHost(ctx, params.ClusterID.String(), params.HostID.String())
-	if err != nil {
-		return common.GenerateErrorResponder(err)
-	}
-
-	argsBytes, err := json.Marshal(params.InstallerArgsParams.Args)
-	if err != nil {
-		return common.GenerateErrorResponder(err)
-	}
-
-	err = b.db.Model(&models.Host{}).Where(identity.AddUserFilter(ctx, "id = ? and cluster_id = ?"), params.HostID, params.ClusterID).Update("installer_args", string(argsBytes)).Error
-	if err != nil {
-		log.WithError(err).Errorf("failed to update host %s", params.HostID)
-		return installer.NewUpdateHostInstallerArgsInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
-	}
-
-	h, err := b.getHost(ctx, params.ClusterID.String(), params.HostID.String())
-	if err != nil {
-		log.WithError(err).Errorf("failed to get host %s after update", params.HostID)
-		return common.NewApiError(http.StatusInternalServerError, err)
-	}
-
-	return installer.NewUpdateHostInstallerArgsCreated().WithPayload(h)
 }
 
 func (b *bareMetalInventory) GetNextSteps(ctx context.Context, params installer.GetNextStepsParams) middleware.Responder {
@@ -2182,7 +2149,7 @@ func (b *bareMetalInventory) DisableHost(ctx context.Context, params installer.D
 	}()
 
 	if err := tx.First(&host, "id = ? and cluster_id = ?", params.HostID, params.ClusterID).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.WithError(err).Errorf("host %s not found", params.HostID)
 			return common.NewApiError(http.StatusNotFound, err)
 		}
@@ -2238,7 +2205,7 @@ func (b *bareMetalInventory) EnableHost(ctx context.Context, params installer.En
 	}()
 
 	if err := tx.First(&host, "id = ? and cluster_id = ?", params.HostID, params.ClusterID).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			log.WithError(err).Errorf("host %s not found", params.HostID)
 			return common.NewApiError(http.StatusNotFound, err)
 		}
@@ -2287,7 +2254,7 @@ func (b *bareMetalInventory) refreshHostAndClusterStatuses(
 			return
 		}
 		logger.WithError(err).Errorf("%s:", eventName)
-		if !gorm.IsRecordNotFoundError(err) {
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
 			b.eventsHandler.AddEvent(
 				ctx,
 				*clusterID,
@@ -2479,7 +2446,7 @@ func (b *bareMetalInventory) checkFileForDownload(ctx context.Context, clusterID
 
 	if err := b.db.First(&c, "id = ?", clusterID).Error; err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", clusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.NewApiError(http.StatusNotFound, err)
 		}
 		return common.NewApiError(http.StatusInternalServerError, err)
@@ -2598,7 +2565,7 @@ func (b *bareMetalInventory) GetCredentials(ctx context.Context, params installe
 
 	if err := b.db.First(&cluster, "id = ?", params.ClusterID).Error; err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", params.ClusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.NewApiError(http.StatusNotFound, err)
 		} else {
 			return common.NewApiError(http.StatusInternalServerError, err)
@@ -2662,7 +2629,7 @@ func (b *bareMetalInventory) UploadClusterIngressCert(ctx context.Context, param
 
 	if err := b.db.First(&cluster, "id = ?", params.ClusterID).Error; err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", params.ClusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return installer.NewUploadClusterIngressCertNotFound().WithPayload(common.GenerateError(http.StatusNotFound, err))
 		} else {
 			return installer.NewUploadClusterIngressCertInternalServerError().
@@ -2799,7 +2766,7 @@ func (b *bareMetalInventory) CancelInstallation(ctx context.Context, params inst
 
 	if err := tx.Preload("Hosts").First(&c, "id = ?", params.ClusterID).Error; err != nil {
 		log.WithError(err).Errorf("Failed to cancel installation: could not find cluster %s", params.ClusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return installer.NewCancelInstallationNotFound().WithPayload(common.GenerateError(http.StatusNotFound, err))
 		}
 		return installer.NewCancelInstallationInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
@@ -2858,7 +2825,7 @@ func (b *bareMetalInventory) ResetCluster(ctx context.Context, params installer.
 
 	if err := tx.Preload("Hosts").First(&c, "id = ?", params.ClusterID).Error; err != nil {
 		log.WithError(err).Errorf("failed to find cluster %s", params.ClusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return installer.NewResetClusterNotFound().WithPayload(common.GenerateError(http.StatusNotFound, err))
 		}
 		return installer.NewResetClusterInternalServerError().WithPayload(common.GenerateError(http.StatusInternalServerError, err))
@@ -2906,7 +2873,7 @@ func (b *bareMetalInventory) CompleteInstallation(ctx context.Context, params in
 
 	var c common.Cluster
 	if err := b.db.Preload("Hosts").First(&c, "id = ?", params.ClusterID).Error; err != nil {
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return common.NewApiError(http.StatusNotFound, err)
 		}
 		return common.GenerateErrorResponder(err)
@@ -3286,7 +3253,7 @@ func (b *bareMetalInventory) getCluster(ctx context.Context, clusterID string, f
 
 	if err := db.First(&cluster, "id = ?", clusterID).Error; err != nil {
 		log.WithError(err).Errorf("Failed to find cluster in db: %s", clusterID)
-		if gorm.IsRecordNotFoundError(err) {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, common.NewApiError(http.StatusNotFound, err)
 		} else {
 			return nil, common.NewApiError(http.StatusInternalServerError, err)

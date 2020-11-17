@@ -8,12 +8,12 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var defaultStatus = "status"
@@ -86,7 +86,12 @@ var _ = Describe("update_host_state", func() {
 		})
 
 		It("db_failure", func() {
-			db.Close()
+			sqliteDB, err := db.DB()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = sqliteDB.Close()
+			Expect(err).ShouldNot(HaveOccurred())
+
 			_, err = updateHostStatus(ctx, getTestLog(), db, mockEvents, host.ClusterID, *host.ID, *host.Status,
 				newStatus, newStatusInfo)
 			Expect(err).Should(HaveOccurred())
@@ -156,9 +161,6 @@ var _ = Describe("update_host_state", func() {
 				Expect(returnedHost.Progress.StageStartedAt.String()).Should(Equal(lastUpdatedTime.String()))
 			}
 		})
-	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 })

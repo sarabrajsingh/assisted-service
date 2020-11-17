@@ -4,11 +4,11 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var defaultStatus = "status"
@@ -69,13 +69,15 @@ var _ = Describe("update_cluster_state", func() {
 		})
 
 		It("db_failure", func() {
-			db.Close()
+			sqliteDB, err := db.DB()
+			Expect(err).ShouldNot(HaveOccurred())
+
+			err = sqliteDB.Close()
+			Expect(err).ShouldNot(HaveOccurred())
+
 			_, err = UpdateCluster(getTestLog(), db, *cluster.ID, *cluster.Status, "status", newStatus)
 			Expect(err).Should(HaveOccurred())
 		})
-	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
 	})
 
 })

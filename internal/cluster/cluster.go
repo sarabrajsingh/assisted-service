@@ -22,7 +22,6 @@ import (
 	"github.com/filanov/stateswitch"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/internal/host"
@@ -33,6 +32,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"gorm.io/gorm"
 )
 
 const DhcpLeaseTimeoutMinutes = 2
@@ -238,7 +238,7 @@ func (m *Manager) tryAssignMachineCidr(cluster *common.Cluster) error {
 		 * Auto assign machine network CIDR is relevant if there is only single host network.  Otherwise the user
 		 * has to select the machine network CIDR
 		 */
-		return m.db.Model(&common.Cluster{}).Where("id = ?", cluster.ID.String()).Update(&common.Cluster{
+		return m.db.Model(&common.Cluster{}).Where("id = ?", cluster.ID.String()).Updates(&common.Cluster{
 			Cluster: models.Cluster{
 				MachineNetworkCidr: networks[0],
 			},
@@ -637,7 +637,7 @@ func (m *Manager) SetConnectivityMajorityGroupsForCluster(clusterID strfmt.UUID,
 	if err != nil {
 		return common.NewApiError(http.StatusInternalServerError, err)
 	}
-	err = db.Model(&common.Cluster{}).Where("id = ?", clusterID.String()).Update(&common.Cluster{
+	err = db.Model(&common.Cluster{}).Where("id = ?", clusterID.String()).Updates(&common.Cluster{
 		Cluster: models.Cluster{
 			ConnectivityMajorityGroups: string(b),
 		},

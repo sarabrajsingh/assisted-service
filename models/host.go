@@ -66,9 +66,6 @@ type Host struct {
 	// Host installation path.
 	InstallationDiskPath string `json:"installation_disk_path,omitempty"`
 
-	// installer args
-	InstallerArgs string `json:"installer_args,omitempty"`
-
 	// Installer version.
 	InstallerVersion string `json:"installer_version,omitempty"`
 

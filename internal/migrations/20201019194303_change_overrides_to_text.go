@@ -1,18 +1,31 @@
 package migrations
 
 import (
-	"github.com/jinzhu/gorm"
+	"github.com/go-gormigrate/gormigrate/v2"
+	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/models"
-	gormigrate "gopkg.in/gormigrate.v1"
+	"gorm.io/gorm"
 )
 
 func changeOverridesToText() *gormigrate.Migration {
 	migrate := func(tx *gorm.DB) error {
-		return tx.Model(&models.Cluster{}).ModifyColumn("install_config_overrides", "text").Error
+		tx.Migrator().DropTable(&models.Cluster{})
+
+		type Cluster struct {
+			common.Cluster
+			InstallConfigOverrides string `json:"install_config_overrides,omitempty" gorm:"type:text"`
+		}
+		return tx.AutoMigrate(&Cluster{})
 	}
 
 	rollback := func(tx *gorm.DB) error {
-		return tx.Model(&models.Cluster{}).ModifyColumn("install_config_overrides", "varchar(2048)").Error
+		tx.Migrator().DropTable(&models.Cluster{})
+
+		type Cluster struct {
+			common.Cluster
+			InstallConfigOverrides string `json:"install_config_overrides,omitempty" gorm:"type:varchar(2048)"`
+		}
+		return tx.AutoMigrate(&Cluster{})
 	}
 
 	return &gormigrate.Migration{

@@ -16,12 +16,12 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/thoas/go-funk"
 
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
 	"github.com/openshift/assisted-service/models"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 const (
@@ -39,7 +39,6 @@ const (
 	statusInfoAbortingDueClusterErrors       = "Host is part of a cluster that failed to install"
 	statusInfoInstallationTimedOut           = "Host failed to install due to timeout while starting installation"
 	statusInfoInstallationInProgressTimedOut = "Host failed to install because its installation stage $STAGE took longer than expected $MAX_TIME"
-	hostNotRespondingNotification            = ", Host is not responding, last respond was at "
 )
 
 type UpdateReply struct {

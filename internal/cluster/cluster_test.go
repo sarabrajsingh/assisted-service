@@ -13,8 +13,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kelseyhightower/envconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -28,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"gorm.io/gorm"
 )
 
 func getDefaultConfig() Config {
@@ -69,7 +68,7 @@ var _ = Describe("stateMachine", func() {
 		})
 
 		AfterEach(func() {
-			common.DeleteTestDB(db, dbName)
+
 			Expect(refreshedCluster).To(BeNil())
 			Expect(stateErr).Should(HaveOccurred())
 		})
@@ -495,7 +494,7 @@ var _ = Describe("TestClusterMonitoring", func() {
 
 			clusterApi.ClusterMonitoring()
 
-			var count int
+			var count int64
 			err := db.Model(&common.Cluster{}).Where("status = ?", models.ClusterStatusInsufficient).
 				Count(&count).Error
 			Expect(err).ShouldNot(HaveOccurred())
@@ -512,7 +511,7 @@ var _ = Describe("TestClusterMonitoring", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 })
@@ -613,9 +612,7 @@ var _ = Describe("lease timeout event", func() {
 			ctrl.Finish()
 		})
 	}
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("Auto assign machine CIDR", func() {
@@ -793,9 +790,7 @@ var _ = Describe("Auto assign machine CIDR", func() {
 			ctrl.Finish()
 		})
 	}
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("VerifyRegisterHost", func() {
@@ -845,9 +840,7 @@ var _ = Describe("VerifyRegisterHost", func() {
 	It("Register host while cluster in installed state", func() {
 		checkVerifyRegisterHost(models.ClusterStatusInstalled, true)
 	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("VerifyClusterUpdatability", func() {
@@ -894,9 +887,6 @@ var _ = Describe("VerifyClusterUpdatability", func() {
 		checkVerifyClusterUpdatability(models.ClusterStatusError, true)
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("CancelInstallation", func() {
@@ -970,9 +960,6 @@ var _ = Describe("CancelInstallation", func() {
 		})
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("ResetCluster", func() {
@@ -1030,9 +1017,6 @@ var _ = Describe("ResetCluster", func() {
 		Expect(*resetEvent.Severity).Should(Equal(models.EventSeverityError))
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 func createHost(clusterId strfmt.UUID, state string, db *gorm.DB) {
@@ -1283,9 +1267,7 @@ var _ = Describe("PrepareForInstallation", func() {
 			t.validation(&cluster)
 		})
 	}
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("HandlePreInstallationError", func() {
@@ -1365,9 +1347,7 @@ var _ = Describe("HandlePreInstallationError", func() {
 			t.validation(&cluster)
 		})
 	}
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("SetVipsData", func() {
@@ -1415,7 +1395,7 @@ var _ = Describe("SetVipsData", func() {
 	})
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	tests := []struct {
@@ -1557,9 +1537,7 @@ var _ = Describe("SetVipsData", func() {
 			Expect(swag.StringValue(c.Status)).To(Equal(t.expectedState))
 		})
 	}
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("Majority groups", func() {
@@ -1573,10 +1551,6 @@ var _ = Describe("Majority groups", func() {
 		mockEvents *events.MockHandler
 		dbName     = "cluster_majority_groups"
 	)
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 
 	BeforeEach(func() {
 		db = common.PrepareTestDB(dbName, &events.Event{})
@@ -1720,9 +1694,7 @@ var _ = Describe("ready_state", func() {
 			Expect(*clusterAfterRefresh.Status).Should(Equal(models.ClusterStatusInsufficient))
 		})
 	})
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
+
 })
 
 var _ = Describe("insufficient_state", func() {
@@ -1815,12 +1787,13 @@ var _ = Describe("prepare-for-installation refresh status", func() {
 	})
 
 	AfterEach(func() {
-		db.Close()
+		sqliteDB, err := db.DB()
+		Expect(err).ShouldNot(HaveOccurred())
+
+		err = sqliteDB.Close()
+		Expect(err).ShouldNot(HaveOccurred())
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
 })
 
 var _ = Describe("Cluster tarred files", func() {
@@ -1864,7 +1837,7 @@ var _ = Describe("Cluster tarred files", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	It("list objects failed", func() {
@@ -1964,7 +1937,7 @@ var _ = Describe("CompleteInstallation", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })
 
@@ -2056,6 +2029,6 @@ var _ = Describe("Permanently delete clusters", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 })

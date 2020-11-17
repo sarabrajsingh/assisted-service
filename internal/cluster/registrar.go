@@ -9,10 +9,10 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/models"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 func NewRegistrar(log logrus.FieldLogger, db *gorm.DB) *registrar {

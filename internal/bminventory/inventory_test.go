@@ -26,8 +26,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
 	"github.com/kelseyhightower/envconfig"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -49,6 +47,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"gopkg.in/yaml.v2"
+	"gorm.io/gorm"
 	v1 "k8s.io/api/core/v1"
 )
 
@@ -56,8 +55,7 @@ const ClusterStatusInstalled = "installed"
 
 func TestValidator(t *testing.T) {
 	RegisterFailHandler(Fail)
-	common.InitializeDBTest()
-	defer common.TerminateDBTest()
+
 	RunSpecs(t, "inventory_test")
 }
 
@@ -132,7 +130,7 @@ var _ = Describe("GenerateClusterISO", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	registerClusterWithHTTPProxy := func(pullSecretSet bool, httpProxy string) *common.Cluster {
@@ -504,7 +502,7 @@ var _ = Describe("RegisterHost", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -643,7 +641,7 @@ var _ = Describe("GetNextSteps", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	It("get_next_steps_unknown_host", func() {
@@ -730,7 +728,7 @@ var _ = Describe("PostStepReply", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	Context("Free addresses", func() {
@@ -965,7 +963,7 @@ var _ = Describe("GetFreeAddresses", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	var makeHost = func(clusterId *strfmt.UUID, freeAddresses, status string) *models.Host {
@@ -1115,7 +1113,7 @@ var _ = Describe("UpdateHostInstallProgress", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	Context("host exists", func() {
@@ -1219,7 +1217,7 @@ var _ = Describe("cluster", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	addHost := func(hostId strfmt.UUID, role models.HostRole, state, kind string, clusterId strfmt.UUID, inventory string, db *gorm.DB) models.Host {
@@ -2498,7 +2496,7 @@ var _ = Describe("cluster", func() {
 
 			AfterEach(func() {
 				close(DoneChannel)
-				common.DeleteTestDB(db, dbName)
+
 			})
 		})
 	}
@@ -2564,7 +2562,7 @@ var _ = Describe("KubeConfig download", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	It("kubeconfig presigned backend not aws", func() {
@@ -2696,7 +2694,7 @@ var _ = Describe("UploadClusterIngressCert test", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 		kubeconfigFile.Close()
 	})
 
@@ -2868,7 +2866,7 @@ var _ = Describe("List unregistered clusters", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 		kubeconfigFile.Close()
 	})
 
@@ -2945,7 +2943,7 @@ var _ = Describe("Get unregistered clusters", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 		kubeconfigFile.Close()
 	})
 
@@ -3037,7 +3035,7 @@ var _ = Describe("Upload and Download logs test", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 		kubeconfigFile.Close()
 	})
 
@@ -3377,7 +3375,7 @@ var _ = Describe("GetClusterInstallConfig", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -3428,7 +3426,7 @@ var _ = Describe("UpdateClusterInstallConfig", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -3506,7 +3504,7 @@ var _ = Describe("GetDiscoveryIgnition", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -3580,7 +3578,7 @@ var _ = Describe("UpdateDiscoveryIgnition", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -3757,7 +3755,6 @@ var _ = Describe("Register OCPCluster test", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, "register_ocp_cluster")
 		ctrl.Finish()
 	})
 
@@ -3976,7 +3973,7 @@ var _ = Describe("Install Hosts test", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -4055,7 +4052,7 @@ var _ = Describe("TestRegisterCluster", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -4177,7 +4174,7 @@ var _ = Describe("GetHostIgnition and DownloadHostIgnition", func() {
 	})
 
 	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
+
 		ctrl.Finish()
 	})
 
@@ -4310,10 +4307,6 @@ var _ = Describe("UpdateHostIgnition", func() {
 		addHost(strfmt.UUID(uuid.New().String()), models.HostRoleWorker, models.HostStatusKnown, models.HostKindHost, clusterID, "{}", db)
 	})
 
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
-
 	It("saves the given string to the host", func() {
 		override := `{"ignition": {"version": "3.1.0"}, "storage": {"files": [{"path": "/tmp/example", "contents": {"source": "data:text/plain;base64,aGVscGltdHJhcHBlZGluYXN3YWdnZXJzcGVj"}}]}}`
 		params := installer.UpdateHostIgnitionParams{
@@ -4385,90 +4378,6 @@ var _ = Describe("UpdateHostIgnition", func() {
 		}
 		response := bm.UpdateHostIgnition(ctx, params)
 		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostIgnitionBadRequest{}))
-	})
-})
-
-var _ = Describe("UpdateHostInstallerArgs", func() {
-	var (
-		bm        *bareMetalInventory
-		cfg       Config
-		db        *gorm.DB
-		ctx       = context.Background()
-		ctrl      *gomock.Controller
-		clusterID strfmt.UUID
-		hostID    strfmt.UUID
-		dbName    = "update_host_installer_args"
-	)
-
-	BeforeEach(func() {
-		ctrl = gomock.NewController(GinkgoT())
-		db = common.PrepareTestDB(dbName)
-		clusterID = strfmt.UUID(uuid.New().String())
-		bm = NewBareMetalInventory(db, getTestLog(), nil, nil, cfg, nil, nil, nil, nil, getTestAuthHandler(), nil, nil, validations.NewMockPullSecretValidator(ctrl))
-		err := db.Create(&common.Cluster{Cluster: models.Cluster{ID: &clusterID}}).Error
-		Expect(err).ShouldNot(HaveOccurred())
-
-		// add a host
-		hostID = strfmt.UUID(uuid.New().String())
-		addHost(hostID, models.HostRoleMaster, models.HostStatusKnown, models.HostKindHost, clusterID, "{}", db)
-	})
-
-	AfterEach(func() {
-		common.DeleteTestDB(db, dbName)
-	})
-
-	It("saves the given array to the host", func() {
-		args := []string{"--append-karg", "nameserver=8.8.8.8", "-n"}
-		params := installer.UpdateHostInstallerArgsParams{
-			ClusterID:           clusterID,
-			HostID:              hostID,
-			InstallerArgsParams: &models.InstallerArgsParams{Args: args},
-		}
-		response := bm.UpdateHostInstallerArgs(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostInstallerArgsCreated{}))
-
-		var updated models.Host
-		err := db.First(&updated, "id = ?", hostID).Error
-		Expect(err).ShouldNot(HaveOccurred())
-
-		var newArgs []string
-		err = json.Unmarshal([]byte(updated.InstallerArgs), &newArgs)
-		Expect(err).ShouldNot(HaveOccurred())
-
-		Expect(newArgs).To(Equal(args))
-	})
-
-	It("returns not found with a non-existant cluster", func() {
-		args := []string{"--append-karg", "nameserver=8.8.8.8", "-n"}
-		params := installer.UpdateHostInstallerArgsParams{
-			ClusterID:           strfmt.UUID(uuid.New().String()),
-			HostID:              hostID,
-			InstallerArgsParams: &models.InstallerArgsParams{Args: args},
-		}
-		response := bm.UpdateHostInstallerArgs(ctx, params)
-		verifyApiError(response, http.StatusNotFound)
-	})
-
-	It("returns not found with a non-existant host", func() {
-		args := []string{"--append-karg", "nameserver=8.8.8.8", "-n"}
-		params := installer.UpdateHostInstallerArgsParams{
-			ClusterID:           clusterID,
-			HostID:              strfmt.UUID(uuid.New().String()),
-			InstallerArgsParams: &models.InstallerArgsParams{Args: args},
-		}
-		response := bm.UpdateHostInstallerArgs(ctx, params)
-		verifyApiError(response, http.StatusNotFound)
-	})
-
-	It("returns bad request when provided an invalid flag", func() {
-		args := []string{"--append-karg", "nameserver=8.8.8.8", "-a"}
-		params := installer.UpdateHostInstallerArgsParams{
-			ClusterID:           clusterID,
-			HostID:              hostID,
-			InstallerArgsParams: &models.InstallerArgsParams{Args: args},
-		}
-		response := bm.UpdateHostInstallerArgs(ctx, params)
-		Expect(response).To(BeAssignableToTypeOf(&installer.UpdateHostInstallerArgsBadRequest{}))
 	})
 })
 

@@ -12,8 +12,7 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/golang/mock/gomock"
 	"github.com/google/uuid"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"gorm.io/gorm"
 
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/manifests"
@@ -29,8 +28,7 @@ import (
 
 func TestValidator(t *testing.T) {
 	RegisterFailHandler(Fail)
-	common.InitializeDBTest()
-	defer common.TerminateDBTest()
+
 	RunSpecs(t, "manifests_test")
 }
 
@@ -63,7 +61,7 @@ var _ = Describe("ClusterManifestTests", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-		common.DeleteTestDB(db, dbName)
+
 	})
 
 	registerCluster := func() *common.Cluster {

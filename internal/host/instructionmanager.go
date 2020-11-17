@@ -6,7 +6,7 @@ import (
 
 	"github.com/openshift/assisted-service/internal/connectivity"
 
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"

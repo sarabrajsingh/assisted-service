@@ -16,6 +16,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/docker/docker v1.13.1 // indirect
 	github.com/filanov/stateswitch v0.0.0-20200714113403-51a42a34c604
+	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/go-openapi/errors v0.19.6
 	github.com/go-openapi/loads v0.19.5
 	github.com/go-openapi/runtime v0.19.20
@@ -27,7 +28,6 @@ require (
 	github.com/golang/mock v1.4.3
 	github.com/google/go-cmp v0.5.2 // indirect
 	github.com/google/uuid v1.1.1
-	github.com/jinzhu/gorm v1.9.12
 	github.com/json-iterator/go v1.1.10 // indirect
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kennygrant/sanitize v1.2.4
@@ -55,9 +55,10 @@ require (
 	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
 	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200914190812-8f9ed77dd8e5 // indirect
-	gopkg.in/gormigrate.v1 v1.6.0
 	gopkg.in/square/go-jose.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.3.0
+	gorm.io/driver/sqlite v1.1.3
+	gorm.io/gorm v1.20.6
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect
 	k8s.io/api v0.18.5
 	k8s.io/apimachinery v0.18.5

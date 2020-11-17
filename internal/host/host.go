@@ -10,12 +10,12 @@ import (
 	"github.com/filanov/stateswitch"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/gorm"
 	"github.com/openshift/assisted-service/internal/hostutil"
 	"github.com/openshift/assisted-service/pkg/leader"
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/thoas/go-funk"
+	"gorm.io/gorm"
 
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/internal/events"
@@ -62,11 +62,6 @@ var InstallationProgressTimeout = map[models.HostStage]time.Duration{
 	"DEFAULT":                                   60 * time.Minute,
 }
 
-var disconnectionValidationStages = []models.HostStage{
-	models.HostStageWritingImageToDisk,
-	models.HostStageInstalling,
-}
-
 var WrongBootOrderIgnoreTimeoutStages = []models.HostStage{
 	models.HostStageStartWaitingForControlPlane,
 	models.HostStageWaitingForControlPlane,
@@ -74,8 +69,6 @@ var WrongBootOrderIgnoreTimeoutStages = []models.HostStage{
 }
 
 var InstallationTimeout = 20 * time.Minute
-
-var MaxHostDisconnectionTime = 3 * time.Minute
 
 type Config struct {
 	EnableAutoReset  bool          `envconfig:"ENABLE_AUTO_RESET" default:"false"`
@@ -158,12 +151,12 @@ func NewManager(log logrus.FieldLogger, db *gorm.DB, eventsHandler events.Handle
 func (m *Manager) RegisterHost(ctx context.Context, h *models.Host) error {
 	var host models.Host
 	err := m.db.First(&host, "id = ? and cluster_id = ?", *h.ID, h.ClusterID).Error
-	if err != nil && !gorm.IsRecordNotFoundError(err) {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 
 	pHost := &host
-	if err != nil && gorm.IsRecordNotFoundError(err) {
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
 		pHost = h
 	}
 
@@ -583,7 +576,7 @@ func (m *Manager) selectRole(ctx context.Context, h *models.Host, db *gorm.DB) (
 	}
 
 	// count already existing masters
-	mastersCount := 0
+	var mastersCount int64
 	if err := db.Model(&models.Host{}).Where("cluster_id = ? and status != ? and role = ?",
 		h.ClusterID, models.HostStatusDisabled, models.HostRoleMaster).Count(&mastersCount).Error; err != nil {
 		log.WithError(err).Errorf("failed to count masters in cluster %s", h.ClusterID.String())

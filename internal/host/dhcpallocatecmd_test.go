@@ -9,10 +9,10 @@ import (
 	"github.com/openshift/assisted-service/internal/common"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/jinzhu/gorm"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/models"
+	"gorm.io/gorm"
 )
 
 var _ = Describe("dhcpallocate", func() {
@@ -113,7 +113,7 @@ var _ = Describe("dhcpallocate", func() {
 
 	AfterEach(func() {
 		// cleanup
-		common.DeleteTestDB(db, dbName)
+
 		stepReply = nil
 		stepErr = nil
 	})
