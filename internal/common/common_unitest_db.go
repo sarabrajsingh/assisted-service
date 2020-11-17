@@ -14,12 +14,13 @@ func PrepareTestDB(dbName string, extrasSchemas ...interface{}) *gorm.DB {
 
 	Expect(err).ShouldNot(HaveOccurred())
 	// db = db.Debug()
-	db.AutoMigrate(&models.Host{}, &Cluster{})
+	err = db.AutoMigrate(&models.Host{}, &Cluster{})
+	Expect(err).ShouldNot(HaveOccurred())
 
 	if len(extrasSchemas) > 0 {
 		for _, schema := range extrasSchemas {
-			db.AutoMigrate(schema)
-			Expect(db.Error).ShouldNot(HaveOccurred())
+			err = db.AutoMigrate(schema)
+			Expect(err).ShouldNot(HaveOccurred())
 		}
 	}
 	return db

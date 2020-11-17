@@ -86,11 +86,8 @@ var _ = Describe("update_host_state", func() {
 		})
 
 		It("db_failure", func() {
-			sqliteDB, err := db.DB()
-			Expect(err).ShouldNot(HaveOccurred())
-
-			err = sqliteDB.Close()
-			Expect(err).ShouldNot(HaveOccurred())
+			sqliteDB, _ := db.DB()
+			Expect(sqliteDB.Close()).ShouldNot(HaveOccurred())
 
 			_, err = updateHostStatus(ctx, getTestLog(), db, mockEvents, host.ClusterID, *host.ID, *host.Status,
 				newStatus, newStatusInfo)

@@ -8,8 +8,6 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20200428143746-21a406dcc535
 	github.com/aws/aws-sdk-go v1.32.6
 	github.com/cavaliercoder/go-cpio v0.0.0-20180626203310-925f9528c45e
-	github.com/cenkalti/backoff/v3 v3.2.2 // indirect
-	github.com/containerd/continuity v0.0.0-20200710164510-efbc4488d8fe // indirect
 	github.com/containers/image/v5 v5.7.0
 	github.com/coreos/ignition/v2 v2.6.0
 	github.com/danielerez/go-dns-client v0.0.0-20200630114514-0b60d1703f0b
@@ -39,7 +37,6 @@ require (
 	github.com/openshift-online/ocm-sdk-go v0.1.130
 	github.com/openshift/api v0.0.0-20200326152221-912866ddb162
 	github.com/openshift/client-go v0.0.0-20200422192633-6f6c07fc2a70
-	github.com/ory/dockertest/v3 v3.6.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pborman/uuid v1.2.0
 	github.com/pkg/errors v0.9.1
@@ -53,7 +50,6 @@ require (
 	github.com/vincent-petithory/dataurl v0.0.0-20191104211930-d1553a71de50
 	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
 	golang.org/x/sync v0.0.0-20201008141435-b3e1573b7520
-	golang.org/x/text v0.3.3 // indirect
 	golang.org/x/tools v0.0.0-20200914190812-8f9ed77dd8e5 // indirect
 	gopkg.in/square/go-jose.v2 v2.3.1
 	gopkg.in/yaml.v2 v2.3.0

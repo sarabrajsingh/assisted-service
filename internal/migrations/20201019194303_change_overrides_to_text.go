@@ -2,6 +2,7 @@ package migrations
 
 import (
 	"github.com/go-gormigrate/gormigrate/v2"
+	. "github.com/onsi/gomega"
 	"github.com/openshift/assisted-service/internal/common"
 	"github.com/openshift/assisted-service/models"
 	"gorm.io/gorm"
@@ -9,7 +10,8 @@ import (
 
 func changeOverridesToText() *gormigrate.Migration {
 	migrate := func(tx *gorm.DB) error {
-		tx.Migrator().DropTable(&models.Cluster{})
+		err := tx.Migrator().DropTable(&models.Cluster{})
+		Expect(err).ShouldNot(HaveOccurred())
 
 		type Cluster struct {
 			common.Cluster
@@ -19,7 +21,8 @@ func changeOverridesToText() *gormigrate.Migration {
 	}
 
 	rollback := func(tx *gorm.DB) error {
-		tx.Migrator().DropTable(&models.Cluster{})
+		err := tx.Migrator().DropTable(&models.Cluster{})
+		Expect(err).ShouldNot(HaveOccurred())
 
 		type Cluster struct {
 			common.Cluster
