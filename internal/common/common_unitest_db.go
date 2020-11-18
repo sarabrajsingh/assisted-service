@@ -11,9 +11,8 @@ import (
 func PrepareTestDB(dbName string, extrasSchemas ...interface{}) *gorm.DB {
 
 	db, err := gorm.Open(sqlite.Open("file::memory:?cache=shared"), &gorm.Config{})
-
 	Expect(err).ShouldNot(HaveOccurred())
-	// db = db.Debug()
+	//db = db.Debug()
 	err = db.AutoMigrate(&models.Host{}, &Cluster{})
 	Expect(err).ShouldNot(HaveOccurred())
 
@@ -24,4 +23,12 @@ func PrepareTestDB(dbName string, extrasSchemas ...interface{}) *gorm.DB {
 		}
 	}
 	return db
+}
+
+func DeleteTestDB(db *gorm.DB, dbName string) {
+	sqlDB, err := db.DB()
+	Expect(err).ShouldNot(HaveOccurred())
+
+	err = sqlDB.Close()
+	Expect(err).ShouldNot(HaveOccurred())
 }

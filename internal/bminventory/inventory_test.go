@@ -130,7 +130,7 @@ var _ = Describe("GenerateClusterISO", func() {
 
 	AfterEach(func() {
 		ctrl.Finish()
-
+		common.DeleteTestDB(db, dbName)
 	})
 
 	registerClusterWithHTTPProxy := func(pullSecretSet bool, httpProxy string) *common.Cluster {

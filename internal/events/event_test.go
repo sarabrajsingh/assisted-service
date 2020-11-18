@@ -130,6 +130,10 @@ var _ = Describe("Events library", func() {
 		})
 	})
 
+	AfterEach(func() {
+		common.DeleteTestDB(db, dbName)
+	})
+
 })
 
 func WithRequestID(requestID string) types.GomegaMatcher {
@@ -158,6 +162,5 @@ func WithTime(t time.Time) types.GomegaMatcher {
 
 func TestEvents(t *testing.T) {
 	RegisterFailHandler(Fail)
-
 	RunSpecs(t, "Events test Suite")
 }
