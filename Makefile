@@ -85,13 +85,13 @@ generate:
 generate-from-swagger: generate-go-client generate-go-server
 
 generate-go-server:
-	rm -rf restapi
+	# rm -rf restapi
 	docker run -u $(UID):$(UID) -v $(PWD):$(PWD):rw,Z -v /etc/passwd:/etc/passwd -w $(PWD) \
 		quay.io/goswagger/swagger:v0.25.0 generate server --template=stratoscale -f swagger.yaml \
 		--template-dir=/templates/contrib
 
 generate-go-client:
-	rm -rf client models
+	# rm -rf client models
 	docker run -u $(UID):$(UID) -v $(PWD):$(PWD):rw,Z -v /etc/passwd:/etc/passwd -w $(PWD) \
 		quay.io/goswagger/swagger:v0.25.0 generate client --template=stratoscale -f swagger.yaml \
 		--template-dir=/templates/contrib
